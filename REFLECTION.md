@@ -1,4 +1,4 @@
-#My HW3 Reflection
+#My HW3 Self Reflection
 
 Q1: Confidence Check: How confident do you feel about HTML after two weeks in WRIT40363? What specific skills feel solid, and what still feels challenging?
 
@@ -27,3 +27,4 @@ A6: I suppose I am most looking forward to seeing the final product. Again, this
 Q7: Support and Resources: What's been most helpful for your learning so far (class discussions, hands-on practice, online resources, classmates)? What additional support might you need moving forward?
 
 A7: So far, the most helpful and accessible resoruce has been our in-class instruction and practice. I am an auditory learner so being able to see, hear, and do actions all at once is extremely beneficial to my overall performance and understanding. As for additional support, I really appreciate the level of detail included in the D2L assignments and feel this is a great resource for outside of class. 
+
