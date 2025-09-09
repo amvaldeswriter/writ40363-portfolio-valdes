@@ -65,7 +65,7 @@ header {
 
 
 .header_text {
-    background-color: rgb(145, 33, 170);
+    background-color: cornflowerblue;
     /* height:50vh; 
     width: 45%; */
     flex: 1; 
@@ -88,6 +88,15 @@ main {
     max-width: 65ch;
     margin: 0 auto;
     padding: 5%;
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+/* Consistent spacing between paragraphs */
+p + p {
+  margin-top: 1rem;
 }
 
 h1 {
