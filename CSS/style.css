@@ -25,7 +25,6 @@ padding: 0;
         border-bottom: 1px solid #e9e9e9
     }
 
-
 nav {
   background-color: #fff;
   padding: 1rem 2rem;
@@ -76,8 +75,7 @@ nav a:focus {
 }
 
 .nav-links a:hover {
-  color: #rgb(249, 227, 249);
-}
+  color: #994ab0 }
 
 /* Main container for all sections */
 .container {
@@ -125,7 +123,7 @@ header {
     padding: 2rem;
     gap: 2rem;
     height: 60vh;
-    background-image: #f8f8f8a;
+    background-image: #f8f8f8;
  /* 
     display: flex;
     flex-direction: row;
@@ -241,7 +239,7 @@ section {
 @media (min-width: 768px) {
   .skills-container {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  }
+  }}
 
 .skill-card {
   flex: 1;
