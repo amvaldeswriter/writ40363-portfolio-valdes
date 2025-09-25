@@ -1,4 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&family=Inconsolata:wght@200..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 
+:root {
+  --primary-color: #1e40af;     /* Professional blue - passes contrast ✅ */
+  --text-color: #1f2937;        /* Dark gray for text - passes contrast ✅ */
+  --light-text: #6b7280;        /* Light gray for secondary text ✅ */
+  --background: #ffffff;        /* White background */
+  --light-background: #f9fafb;  /* Very light gray for sections */
+  --card-background: #f8f9fa;
+ --card-border: #e9ecef;
+  --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+ --card-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.15);
+ --accent-color: #a35dbb;
+ --link-hover: hsl(211, 100%, 50%);
+ --heading-color: #552269;
+}
+
+/* Apply colors consistently throughout your site */
+
+
+h1, h2, h3 {
+  color: var(--primary-color);
+}
+
+a {
+  color: var(--primary-color);
+}
+
+.secondary-text {
+  color: var(--light-text);
+}
 
 /* The next lines override the browser's margin and padding */
 
@@ -14,9 +44,10 @@ padding: 0;
         - apple-system: fallback for older Safari browsers 
         -san-serif: Universal fallback  */
 
-        font-family: system-ui, -apple-system, sans-serif;
+        font-family: 'cabin', serif;
         line-height: 1.6;
-        color: #333;
+        color: var(--text-color);
+        background: var(--background);
     }
 
     nav {
@@ -75,7 +106,7 @@ nav a:focus {
 }
 
 .nav-links a:hover {
-  color: #994ab0 }
+  color: var(--accent-color)}
 
 /* Main container for all sections */
 .container {
@@ -322,9 +353,16 @@ section {
 p + p {
   margin-top: 1rem;
 }
+h1, h2, h3 {
+    font-family: 'urbanist', sans-serif;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
 
 h1 {
-    color: #4d1979;
+    color: 
+    var(--heading-color);
     font-size: 2.5rem; 
     font-weight: 700;
     margin-bottom: 1rem;
@@ -333,7 +371,7 @@ h1 {
     }
 
 h2 {
-    color: #4d1979;
+    color: var(--heading-color);
     font-size: 2rem;
     font-weight: 600;
     margin-bottom: 0.8rem;
