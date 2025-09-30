@@ -254,6 +254,19 @@ section {
   gap: 1rem; */
 }
 
+.skill-card {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #e9ecef;
+}
+
+.skill-card h3 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
 .skills-container {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
@@ -288,18 +301,7 @@ section {
 }
 
 
-.skill-card {
-  padding: 1.5rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  text-align: center;
-  border: 1px solid #e9ecef;
-}
 
-.skill-card h3 {
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
 
 .projects-container {
   display: grid;
