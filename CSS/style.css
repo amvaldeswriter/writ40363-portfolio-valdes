@@ -301,7 +301,18 @@ section {
 }
 
 
+.end-image {
+ justify-self: center; /*flex: 1;
+min-width: 250px;
+text-align: center; */
+}
 
+.end-image img {
+  width: 100%;
+  max-width: 350px;
+  height: auto;
+  border-radius: 8px;
+}
 
 .projects-container {
   display: grid;
