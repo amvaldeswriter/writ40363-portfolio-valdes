@@ -47,6 +47,10 @@ function displayWeather(weather) {
                 <span>💨 Wind Speed</span>
                 <strong>${weather.windSpeed} mph</strong>
             </div>
+            <div class="weather-detail">
+                <span>🌡️ Feels Like</span>
+                <strong>${weather.feelsLike}°F</strong>
+            </div>
         </div>
     `;
 
