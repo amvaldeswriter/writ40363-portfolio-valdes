@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cabin:ital,wght@0,400..700;1,400..700&family=Inconsolata:wght@200..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
-  --primary-color: #1e40af;     /* Professional blue - passes contrast ✅ */
+  --primary-color: #c9d2ef;     /* Professional blue - passes contrast ✅ */
   --text-color: #1f2937;        /* Dark gray for text - passes contrast ✅ */
   --light-text: #6b7280;        /* Light gray for secondary text ✅ */
   --background: #ffffff;        /* White background */
@@ -11,7 +11,7 @@
   --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
  --card-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.15);
  --accent-color: #a35dbb;
- --link-hover: hsl(211, 100%, 50%);
+ --link-hover: hsl(211, 79%, 83%);
  --heading-color: #552269;
 }
 
@@ -168,7 +168,7 @@ header {
 
 
 .header_text {
-    background-color: cornflowerblue;
+    background-color: rgb(183, 206, 249);
     /* height:50vh; 
     width: 45%; */
     flex: 1; 
