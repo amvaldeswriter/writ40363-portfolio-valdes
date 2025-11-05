@@ -196,6 +196,13 @@ header {
     border-radius: 8px;
 }
 
+/* Mobile: stack header content vertically */
+@media (max-width: 767px) {
+  header {
+    flex-direction: column;
+    height: auto;
+  }
+}
 
 main {
      display: grid;
