@@ -216,6 +216,22 @@ header {
   section {
     padding: 2rem 0;
   }
+  
+  .about-text {
+    min-width: 0;
+  }
+  
+  main {
+    gap: 3rem;
+  }
+  
+  .project-card {
+    padding: 1rem;
+  }
+  
+  .skill-card {
+    padding: 1rem;
+  }
 }
 main {
      display: grid;
