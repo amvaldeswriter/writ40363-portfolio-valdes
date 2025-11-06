@@ -48,6 +48,7 @@ padding: 0;
         line-height: 1.6;
         color: var(--text-color);
         background: var(--background);
+        overflow-x: hidden;
     }
 
     nav {
@@ -168,7 +169,7 @@ header {
 
 
 .header_text {
-    background-color: cornflowerblue;
+    background-color: rgb(170, 196, 245);
     /* height:50vh; 
     width: 45%; */
     flex: 1; 
@@ -196,13 +197,32 @@ header {
     border-radius: 8px;
 }
 
-
+/* Mobile: stack header content vertically */
+@media (max-width: 767px) {
+  header {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
+  }
+  
+  .header_text {
+    padding: 1rem;
+  }
+  
+  .nav-container {
+    padding: 1rem;
+  }
+  
+  section {
+    padding: 2rem 0;
+  }
+}
 main {
      display: grid;
   gap: 6rem;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
   /*max-width: 65ch;
     margin: 0 auto;
     padding: 5%;*/
@@ -210,7 +230,7 @@ main {
 
 @media (min-width: 768px) {
   main {
-    padding: 1.5rem;
+    padding: 2rem;
   }
 }
 
@@ -260,6 +280,8 @@ section {
   border-radius: 8px;
   text-align: center;
   border: 1px solid #e9ecef;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .skill-card h3 {
@@ -403,6 +425,8 @@ p {
   font-size: 1rem;
   margin-bottom: 1rem;
   color: #555; /* Slightly lighter for body text */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 footer {
