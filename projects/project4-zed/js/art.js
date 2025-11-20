@@ -33,6 +33,10 @@ let lastY = 0;
 let textClickX = 0;
 let textClickY = 0;
 
+// Undo history
+let undoHistory = [];
+const MAX_UNDO_STEPS = 20; // Limit history to prevent memory issues
+
 // Initialize canvas with white background
 ctx.fillStyle = 'white';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -46,6 +50,7 @@ const fontSizeDisplay = document.getElementById('font-size-display');
 const fontSizeGroup = document.getElementById('font-size-group');
 const colorPicker = document.getElementById('color-picker');
 const colorPresets = document.querySelectorAll('.color-preset');
+const undoBtn = document.getElementById('undo-btn');
 const clearBtn = document.getElementById('clear-btn');
 const saveBtn = document.getElementById('save-btn');
 const textModal = document.getElementById('text-modal');
@@ -160,6 +165,61 @@ clearGalleryBtn.addEventListener('click', clearGallery);
 
 // Load gallery on startup
 loadGallery();
+
+// Undo functionality
+function saveCanvasState() {
+    // Save current canvas state to history
+    const canvasState = canvas.toDataURL();
+    undoHistory.push(canvasState);
+    
+    // Limit history size to prevent memory issues
+    if (undoHistory.length > MAX_UNDO_STEPS) {
+        undoHistory.shift(); // Remove oldest state
+    }
+    
+    // Update undo button state
+    updateUndoButton();
+}
+
+function undo() {
+    if (undoHistory.length > 1) {
+        // Remove current state
+        undoHistory.pop();
+        
+        // Get previous state
+        const previousState = undoHistory[undoHistory.length - 1];
+        
+        // Restore canvas from previous state
+        const img = new Image();
+        img.onload = function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = previousState;
+    }
+    
+    // Update undo button state
+    updateUndoButton();
+}
+
+function updateUndoButton() {
+    // Disable undo button if no history or only initial state
+    if (undoHistory.length <= 1) {
+        undoBtn.disabled = true;
+        undoBtn.style.opacity = '0.5';
+        undoBtn.style.cursor = 'not-allowed';
+    } else {
+        undoBtn.disabled = false;
+        undoBtn.style.opacity = '1';
+        undoBtn.style.cursor = 'pointer';
+    }
+}
+
+// Initialize undo button state
+updateUndoButton();
+
+// Save initial canvas state
+saveCanvasState();
 
 // Tool selection
 toolButtons.forEach(btn => {
@@ -289,7 +349,11 @@ function drawSpray(x, y) {
 }
 
 function stopDrawing() {
-    isDrawing = false;
+    if (isDrawing) {
+        isDrawing = false;
+        // Save canvas state after drawing action
+        saveCanvasState();
+    }
 }
 
 // Text tool functions
@@ -315,6 +379,9 @@ function addTextToCanvas() {
         lines.forEach((line, index) => {
             ctx.fillText(line, textClickX, textClickY + (index * currentFontSize * 1.2));
         });
+        
+        // Save canvas state after adding text
+        saveCanvasState();
     }
     closeTextModal();
 }
@@ -378,8 +445,13 @@ clearBtn.addEventListener('click', () => {
     if (confirm('Are you sure you want to clear the canvas?')) {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Save canvas state after clearing
+        saveCanvasState();
     }
 });
+
+// Undo button
+undoBtn.addEventListener('click', undo);
 
 // Save image
 saveBtn.addEventListener('click', () => {
@@ -391,6 +463,11 @@ saveBtn.addEventListener('click', () => {
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
+    // Ctrl+Z or Cmd+Z for undo
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+    }
     // B for brush
     if (e.key === 'b' || e.key === 'B') {
         document.querySelector('[data-tool="brush"]').click();
@@ -425,4 +502,4 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-console.log('Art canvas loaded! Keyboard shortcuts: B=Brush, E=Eraser, S=Spray, T=Text, [=Decrease size, ]=Increase size');
+console.log('Art canvas loaded! Keyboard shortcuts: Ctrl/Cmd+Z=Undo, B=Brush, E=Eraser, S=Spray, T=Text, [=Decrease size, ]=Increase size');
