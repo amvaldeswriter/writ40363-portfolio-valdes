@@ -6,8 +6,9 @@
     <title>My Personal Dashboard</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
-        <header class="dashboard-header">
+    <header class="dashboard-header">
   <div class="header-content">
     <div>
       <h1>My Personal Dashboard</h1>
@@ -18,26 +19,22 @@
     </button>
   </div>
 </header>
-<div class="dashboard">
-    <!-- all widget sections live here -->
-  </div>
-        <main class="widgets-container">
-            <!-- Weather Widget -->
-            <section class="widget weather-widget">
-                <h2>Current Weather</h2>
-                <div id="weather-display">
-                    Loading weather data...
-                </div>
-            </section>
-        </main>
+    <div class="dashboard">
+        <!-- Weather Widget -->
+        <div class="widget weather-widget">
+            <h2>Current Weather</h2>
+            <div id="weather-display">
+                Loading weather data...
+            </div>
     </div>
-    
-        <section class="widget quotes-widget">
-            <h2>Daily Inspiration</h2>
-            <div id="quotes-display">
+    <div class="widget quotes-widget">
+  <h2>Daily Inspiration</h2>
+  <div id="quotes-display">
     <!-- Quote will appear here -->
-        </div>
-        <div class="widget tasks-widget">
+  </div>
+  <button id="new-quote-btn" class="btn-primary">New Quote</button>
+</div>
+<div class="widget tasks-widget">
   <h2>My Tasks</h2>
 
   <!-- Add Task Form -->
@@ -61,8 +58,7 @@
     <!-- Tasks will appear here -->
   </div>
 </div>
-          <button id="new-quote-btn" class="btn-primary">New Quote</button>
-        </section>
+</div>
 
     <script src="js/app.js"></script>
 </body>

@@ -1,3 +1,9 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 /* ===================================
    CSS CUSTOM PROPERTIES (VARIABLES)
    =================================== */
@@ -13,8 +19,8 @@
   --color-bg-white: #ffffff;
 
   /* Text Colors */
-  --color-text-dark: var(--color-text-dark);
-  --color-text-muted: var(--color-text-muted);
+  --color-text-dark: #2d3748;
+  --color-text-muted: #718096;
 
   /* UI Elements */
   --color-border: #e2e8f0;
@@ -40,7 +46,6 @@
   --font-size-2xl: 24px;
   --font-size-3xl: 32px;
 }
-
 /* Dark Theme - Override Variables */
 body.theme-dark {
   /* Backgrounds */
@@ -69,25 +74,6 @@ body.theme-dark {
   --color-primary: #4a5568;
   --color-secondary: #2d3748;
 }
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Optional: Dark mode specific refinements */
-body.theme-dark .task-item {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-body.theme-dark .task-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-body.theme-dark input {
-  background: var(--color-bg-light);
-  color: var(--color-text-dark);
-}
 
 body {
   margin: 0;
@@ -98,12 +84,17 @@ body {
 }
 
 header {
+    background: linear-gradient(135deg, var(--color-primary)0%, #764ba2 100%);
+    color: white;
     text-align: center;
-    margin-bottom: 30px;
+    padding: 40px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 header h1 {
-    color: var(--color-text-dark);
+    margin: 0;
+    font-size: 2em;
+    font-weight: 700;
 }
 
 .header-content {
@@ -142,14 +133,13 @@ header h1 {
     gap: 20px;
   }
 }
-
 .dashboard {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-md);
-  padding: var(--space-lg) var(--space-md);
-  max-width: 1200px;
-  margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .widget {
@@ -164,26 +154,26 @@ header h1 {
   }
 }
 
-.widgets-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-}
-
 .widget {
-    background: var(--color-bg-white);
+  background: var(--color-bg-white);
   padding: var(--space-md);
   border-radius: 8px;
-  box-shadow: var(--shadow-sm)
+  box-shadow: var(--shadow-sm);
 }
 
 .widget h2 {
     margin-bottom: 15px;
-    color: #455f8b;
+    color: #4a5568;
     font-size: 1.2em;
-    border-bottom: 2px solid var(--color-border);
 }
 
+/* Responsive: stack widgets on mobile */
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+}
 /* Weather Widget Styles */
 .weather-current {
     text-align: center;
@@ -218,7 +208,7 @@ header h1 {
     display: flex;
     justify-content: space-around;
     padding-top: 15px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--color-border);
     margin-top: 15px;
 }
 
@@ -250,7 +240,7 @@ header h1 {
 }
 
 .error-message p {
-    color: #e53e3e;
+    color: var(--color-error);
     font-size: 16px;
     margin: 5px 0;
 }
@@ -259,8 +249,9 @@ header h1 {
     color: #a0aec0;
     font-size: 14px !important;
 }
+
 .quotes-widget {
-  background: #d8afe1;
+  background: var(--color-bg-white);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -291,8 +282,34 @@ header h1 {
   font-weight: 500;
 }
 
+.btn-primary {
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: 100%;
+  margin-top: 15px;
+}
+
+.btn-primary:hover {
+  background: #3182ce;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.quote-card {
+  animation: fadeIn 0.5s ease;
+}
+
 .tasks-widget {
-  background: #ffffff;
+  background: var(--color-bg-white);
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -314,14 +331,14 @@ header h1 {
 
 .task-form input[type="text"]:focus {
   outline: none;
-  border-color: #4299e1;
+  border-color: var(--color-accent);
 }
 
 .task-stats {
   display: flex;
   justify-content: space-around;
   padding: 15px;
-  background: #f7fafc;
+  background:var(--color-bg-light);
   border-radius: 5px;
   margin-bottom: 15px;
   font-size: 13px;
@@ -329,7 +346,7 @@ header h1 {
 }
 
 .task-stats .stat strong {
-  color: var(--color-text-dark);
+  ccolor: var(--color-text-dark);
 }
 
 .tasks-list {
@@ -342,14 +359,14 @@ header h1 {
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 5px;
   margin-bottom: 8px;
   transition: background 0.2s ease;
 }
 
 .task-item:hover {
-  background: #f7fafc;
+  background: var(--color-bg-light);
 }
 
 .task-item input[type="checkbox"] {
@@ -371,7 +388,7 @@ header h1 {
 
 .btn-delete {
   padding: 6px 12px;
-  background: #fc8181;
+  background: var(--color-error-bg);
   color: white;
   border: none;
   border-radius: 4px;
@@ -389,31 +406,6 @@ header h1 {
   padding: 40px 20px;
   color: #a0aec0;
   font-size: 14px;
-}
-
-.btn-primary {
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  width: 100%;
-  margin-top: 15px;
-}
-
-.btn-primary:hover {
-  background: #3182ce;
-}
-
-.btn-primary:active {
-  transform: scale(0.98);
-}
-.quote-card {
-  animation: fadeIn 0.5s ease;
 }
 
 @keyframes fadeIn {

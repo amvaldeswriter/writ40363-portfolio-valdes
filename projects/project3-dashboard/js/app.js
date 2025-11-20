@@ -24,7 +24,6 @@ function loadWeather() {
             displayWeatherError();
         });
 }
-
 // Function to display weather data in the DOM
 function displayWeather(weather) {
     console.log('📊 Displaying weather data...');
@@ -47,16 +46,11 @@ function displayWeather(weather) {
                 <span>💨 Wind Speed</span>
                 <strong>${weather.windSpeed} mph</strong>
             </div>
-            <div class="weather-detail">
-                <span>🌡️ Feels Like</span>
-                <strong>${weather.feelsLike}°F</strong>
-            </div>
         </div>
     `;
 
     console.log('✅ Weather displayed successfully!');
 }
-
 // Function to show error message if weather data fails to load
 function displayWeatherError() {
     const weatherDisplay = document.getElementById('weather-display');
@@ -67,9 +61,12 @@ function displayWeatherError() {
             <p>Could not load weather data</p>
             <p class="error-hint">Check console for details</p>
         </div>
+        <div class="weather-detail">
+    <span>🌡️ Feels Like</span>
+    <strong>${weather.feelsLike}°F</strong>
+</div>
     `;
 }
-
 // Load weather data when page loads
 loadWeather();
 
@@ -81,7 +78,7 @@ let currentQuoteIndex = -1; // Track current quote to avoid repeats
 function loadQuotes() {
   console.log('Loading quotes...');
 
-  fetch('data/quotes.json')
+  fetch('./data/quotes.json')
     .then(response => {
       console.log('Got quotes response:', response);
       return response.json();
@@ -269,6 +266,7 @@ function toggleTask(index) {
 
   console.log('Task toggled:', tasks[index]);
 }
+
 // Function to delete a task
 function deleteTask(index) {
   const tasks = loadTasks();

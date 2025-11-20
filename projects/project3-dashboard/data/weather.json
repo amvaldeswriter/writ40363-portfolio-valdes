@@ -1,8 +1,8 @@
 {
   "location": "Houston, TX",
-  "temperature": 72,
-  "condition": "Partly Cloudy",
-  "icon": "⛅",
+  "temperature": 78,
+  "condition": "Drizzle",
+  "icon": "🌧️",
   "humidity": 65,
   "windSpeed": 8,
   "feelsLike": 74
