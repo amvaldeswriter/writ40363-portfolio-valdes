@@ -193,6 +193,11 @@ function displayTasks() {
   tasks.forEach((task, index) => {
     const taskItem = document.createElement('div');
     taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
+    
+    // Add category class for styling
+    if (task.category) {
+      taskItem.classList.add(`category-${task.category}`);
+    }
 
     // Create checkbox
     const checkbox = document.createElement('input');
@@ -204,6 +209,53 @@ function displayTasks() {
     const taskText = document.createElement('span');
     taskText.className = 'task-text';
     taskText.textContent = task.text;
+    
+    // Create task details container (category + due date)
+    const taskDetails = document.createElement('div');
+    taskDetails.className = 'task-details';
+    
+    // Create category badge
+    const categoryBadge = document.createElement('span');
+    categoryBadge.className = 'task-category-badge';
+    
+    // Map category to emoji and label
+    const categoryMap = {
+      'school': '🎓 School',
+      'work': '💼 Work',
+      'personal': '🏠 Personal',
+      'fun': '🎉 For Fun!'
+    };
+    
+    categoryBadge.textContent = categoryMap[task.category] || task.category || 'No Category';
+    taskDetails.appendChild(categoryBadge);
+    
+    // Create due date badge if it exists
+    if (task.dueDate) {
+      const dueDateBadge = document.createElement('span');
+      dueDateBadge.className = 'task-due-date-badge';
+      
+      const dueDate = new Date(task.dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dueDate.setHours(0, 0, 0, 0);
+      
+      // Check if overdue
+      const isOverdue = dueDate < today && !task.completed;
+      const isToday = dueDate.getTime() === today.getTime();
+      
+      if (isOverdue) {
+        dueDateBadge.classList.add('overdue');
+      } else if (isToday) {
+        dueDateBadge.classList.add('today');
+      }
+      
+      // Format date nicely
+      const options = { month: 'short', day: 'numeric' };
+      const formattedDate = dueDate.toLocaleDateString('en-US', options);
+      
+      dueDateBadge.textContent = `📅 ${formattedDate}`;
+      taskDetails.appendChild(dueDateBadge);
+    }
 
     // Create delete button
     const deleteBtn = document.createElement('button');
@@ -214,6 +266,7 @@ function displayTasks() {
     // Append all elements to task item
     taskItem.appendChild(checkbox);
     taskItem.appendChild(taskText);
+    taskItem.appendChild(taskDetails);
     taskItem.appendChild(deleteBtn);
 
     tasksList.appendChild(taskItem);
@@ -223,11 +276,13 @@ function displayTasks() {
 }
 
 // Function to add a new task
-function addTask(taskText) {
+function addTask(taskText, category, dueDate) {
   const tasks = loadTasks();
 
   const newTask = {
     text: taskText,
+    category: category,
+    dueDate: dueDate || null,
     completed: false,
     id: Date.now() // Unique ID using timestamp
   };
@@ -243,15 +298,21 @@ function addTask(taskText) {
 function setupTaskForm() {
   const taskForm = document.getElementById('task-form');
   const taskInput = document.getElementById('task-input');
+  const taskCategory = document.getElementById('task-category');
+  const taskDueDate = document.getElementById('task-due-date');
 
   taskForm.addEventListener('submit', (e) => {
     e.preventDefault(); // Prevent page reload
 
     const taskText = taskInput.value.trim();
+    const category = taskCategory.value;
+    const dueDate = taskDueDate.value;
 
-    if (taskText) {
-      addTask(taskText);
+    if (taskText && category) {
+      addTask(taskText, category, dueDate);
       taskInput.value = ''; // Clear input
+      taskCategory.value = ''; // Reset dropdown
+      taskDueDate.value = ''; // Clear date
       taskInput.focus(); // Focus back on input
     }
   });

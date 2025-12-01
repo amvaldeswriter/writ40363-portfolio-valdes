@@ -45,6 +45,19 @@
       placeholder="Add a new task..."
       required
     />
+    <select id="task-category" class="task-category" required>
+      <option value="">-- Select Category --</option>
+      <option value="school">🎓 School</option>
+      <option value="work">💼 Work</option>
+      <option value="personal">🏠 Personal</option>
+      <option value="fun">🎉 For Fun!</option>
+    </select>
+    <input
+      type="date"
+      id="task-due-date"
+      class="task-due-date"
+      title="Select due date (optional)"
+    />
     <button type="submit" class="btn-primary">Add Task</button>
   </form>
 
