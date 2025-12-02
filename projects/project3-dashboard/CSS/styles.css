@@ -83,6 +83,31 @@ body {
   color: var(--color-text-dark);
 }
 
+/* Navigation styling for "Back to Portfolio Home" link */
+nav {
+  background: rgb(249, 227, 249);
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e9ecef;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+nav a {
+  color: #495057;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #007bff;
+}
+
+nav a:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
 header {
     background: linear-gradient(135deg, var(--color-primary)0%, #764ba2 100%);
     color: white;
