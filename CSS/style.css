@@ -751,6 +751,17 @@ text-align: center; */
 }
 /* Mobile-first responsive adjustments */
 
+.insta-feed {
+  height: 300px;
+  overflow-x: scroll;
+  display: flex;
+  gap: 10px;
+}
+
+.insta-feed img {
+  height: 300px;
+  border-radius: 10px;
+}
 
 
 
