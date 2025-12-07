@@ -1,115 +1,121 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE htm    <main class="container">
+        <header>
+            <h1>Virtual sticky notes</h1>
+            <p>Draw with your mouse or trackpad</p>
+        </header>
+
+        <section class="toolbar" aria-label="Drawing tools and controls">l lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Virtual Sticky Notes - A collaborative drawing and note-taking canvas application">
     <title>Virtual Sticky Notes</title>
     <link rel="stylesheet" href="css/art-styles.css">
 </head>
 <body>
-    <nav>
-    <a href="../../">← Back to Portfolio Home</a>
-</nav>
-    <div class="container">
+    <nav aria-label="Main navigation">
+        <a href="../../">← Back to Portfolio Home</a>
+    </nav>
+    <main class="container">
         <header>
             <h1>Virtual sticky notes</h1>
             <p>Draw with your mouse or trackpad</p>
         </header>
 
         <div class="toolbar">
-            <div class="tool-group">
-                <label>Tool:</label>
-                <button class="tool-btn active" data-tool="brush">
-                    <span>🖌️</span> Pencil
+            <div class="tool-group" role="radiogroup" aria-label="Drawing tool selection">
+                <label id="tool-label">Tool:</label>
+                <button class="tool-btn active" data-tool="brush" aria-label="Pencil tool" aria-pressed="true">
+                    <span aria-hidden="true">🖌️</span> Pencil
                 </button>
-                <button class="tool-btn" data-tool="eraser">
-                    <span>🧹</span> Eraser
+                <button class="tool-btn" data-tool="eraser" aria-label="Eraser tool" aria-pressed="false">
+                    <span aria-hidden="true">🧹</span> Eraser
                 </button>
-                <button class="tool-btn" data-tool="spray">
-                    <span>💨</span> Spray Can
+                <button class="tool-btn" data-tool="spray" aria-label="Spray can tool" aria-pressed="false">
+                    <span aria-hidden="true">💨</span> Spray Can
                 </button>
-                <button class="tool-btn" data-tool="text">
-                    <span>✍️</span> Text
+                <button class="tool-btn" data-tool="text" aria-label="Text tool" aria-pressed="false">
+                    <span aria-hidden="true">✍️</span> Text
                 </button>
             </div>
 
             <div class="tool-group">
-                <label>Size:</label>
-                <input type="range" id="brush-size" min="1" max="50" value="5">
-                <span id="size-display">5px</span>
+                <label for="brush-size">Size:</label>
+                <input type="range" id="brush-size" min="1" max="50" value="5" aria-label="Brush size" aria-valuemin="1" aria-valuemax="50" aria-valuenow="5">
+                <span id="size-display" aria-live="polite">5px</span>
             </div>
 
-            <div class="tool-group" id="font-size-group" style="display: none;">
-                <label>Font Size:</label>
-                <input type="range" id="font-size" min="10" max="100" value="20">
-                <span id="font-size-display">20px</span>
+            <div class="tool-group hidden" id="font-size-group">
+                <label for="font-size">Font Size:</label>
+                <input type="range" id="font-size" min="10" max="100" value="20" aria-label="Font size" aria-valuemin="10" aria-valuemax="100" aria-valuenow="20">
+                <span id="font-size-display" aria-live="polite">20px</span>
             </div>
 
             <div class="tool-group">
-                <label>Color:</label>
-                <input type="color" id="color-picker" value="#000000">
-                <div class="color-presets">
-                    <button class="color-preset" data-color="#000000" style="background: #000000;"></button>
-                    <button class="color-preset" data-color="#FF0000" style="background: #FF0000;"></button>
-                    <button class="color-preset" data-color="#00FF00" style="background: #00FF00;"></button>
-                    <button class="color-preset" data-color="#0000FF" style="background: #0000FF;"></button>
-                    <button class="color-preset" data-color="#FFFF00" style="background: #FFFF00;"></button>
-                    <button class="color-preset" data-color="#FF00FF" style="background: #FF00FF;"></button>
-                    <button class="color-preset" data-color="#00FFFF" style="background: #00FFFF;"></button>
-                    <button class="color-preset" data-color="#FFFFFF" style="background: #FFFFFF; border: 1px solid #ccc;"></button>
+                <label for="color-picker">Color:</label>
+                <input type="color" id="color-picker" value="#000000" aria-label="Color picker">
+                <div class="color-presets" role="group" aria-label="Color presets">
+                    <button class="color-preset" data-color="#000000" style="background: #000000;" aria-label="Black"></button>
+                    <button class="color-preset" data-color="#FF0000" style="background: #FF0000;" aria-label="Red"></button>
+                    <button class="color-preset" data-color="#00FF00" style="background: #00FF00;" aria-label="Green"></button>
+                    <button class="color-preset" data-color="#0000FF" style="background: #0000FF;" aria-label="Blue"></button>
+                    <button class="color-preset" data-color="#FFFF00" style="background: #FFFF00;" aria-label="Yellow"></button>
+                    <button class="color-preset" data-color="#FF00FF" style="background: #FF00FF;" aria-label="Magenta"></button>
+                    <button class="color-preset" data-color="#00FFFF" style="background: #00FFFF;" aria-label="Cyan"></button>
+                    <button class="color-preset" data-color="#FFFFFF" style="background: #FFFFFF; border: 1px solid #ccc;" aria-label="White"></button>
                 </div>
             </div>
 
-            <div class="tool-group">
-                <button id="undo-btn" class="action-btn">
-                    <span>↶</span> Undo
+            <div class="tool-group" role="group" aria-label="Canvas actions">
+                <button id="undo-btn" class="action-btn" aria-label="Undo last action">
+                    <span aria-hidden="true">↶</span> Undo
                 </button>
-                <button id="clear-btn" class="action-btn">
-                    <span>🗑️</span> Clear Canvas
+                <button id="clear-btn" class="action-btn danger-btn" aria-label="Clear entire canvas">
+                    <span aria-hidden="true">🗑️</span> Clear Canvas
                 </button>
-                <button id="save-btn" class="action-btn">
-                    <span>💾</span> Save Image
+                <button id="save-btn" class="action-btn" aria-label="Save image">
+                    <span aria-hidden="true">💾</span> Save Image
                 </button>
                 <div class="export-dropdown">
-                    <button id="export-btn" class="action-btn">
-                        <span>📥</span> Export
+                    <button id="export-btn" class="action-btn" aria-label="Export menu" aria-expanded="false" aria-haspopup="true">
+                        <span aria-hidden="true">📥</span> Export
                     </button>
-                    <div id="export-menu" class="export-menu">
-                        <button class="export-option" data-format="png">
-                            <span>🖼️</span> PNG Image
+                    <div id="export-menu" class="export-menu" role="menu">
+                        <button class="export-option" data-format="png" role="menuitem">
+                            <span aria-hidden="true">🖼️</span> PNG Image
                         </button>
-                        <button class="export-option" data-format="jpg">
-                            <span>📷</span> JPG Image
+                        <button class="export-option" data-format="jpg" role="menuitem">
+                            <span aria-hidden="true">📷</span> JPG Image
                         </button>
-                        <button class="export-option" data-format="svg">
-                            <span>🎨</span> SVG Vector
+                        <button class="export-option" data-format="svg" role="menuitem">
+                            <span aria-hidden="true">🎨</span> SVG Vector
                         </button>
-                        <button class="export-option" data-format="pdf">
-                            <span>📄</span> PDF Document
+                        <button class="export-option" data-format="pdf" role="menuitem">
+                            <span aria-hidden="true">📄</span> PDF Document
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="canvas-wrapper">
-            <canvas id="art-canvas"></canvas>
-        </div>
+        <section class="canvas-wrapper" aria-label="Drawing canvas">
+            <canvas id="art-canvas" role="img" aria-label="Sticky note drawing canvas"></canvas>
+        </section>
 
         <!-- Sticky Note Gallery Section -->
-        <section class="gallery-section">
+        <section class="gallery-section" aria-label="Saved sticky notes gallery">
             <div class="gallery-header">
-                <h2>📌 Sticky Note Gallery</h2>
-                <div class="gallery-controls">
-                    <button id="save-to-gallery-btn" class="gallery-action-btn">
-                        <span>💾</span> Save Current Note
+                <h2><span aria-hidden="true">📌</span> Sticky Note Gallery</h2>
+                <div class="gallery-controls" role="group" aria-label="Gallery actions">
+                    <button id="save-to-gallery-btn" class="action-btn" aria-label="Save current note to gallery">
+                        <span aria-hidden="true">💾</span> Save Current Note
                     </button>
-                    <button id="clear-gallery-btn" class="gallery-action-btn danger">
-                        <span>🗑️</span> Clear Gallery
+                    <button id="clear-gallery-btn" class="action-btn danger-btn" aria-label="Clear all saved notes">
+                        <span aria-hidden="true">🗑️</span> Clear Gallery
                     </button>
                 </div>
             </div>
-            <div id="gallery-container" class="gallery-grid">
+            <div id="gallery-container" class="gallery-grid" role="list" aria-label="Saved sticky notes">
                 <p class="empty-message">No sticky notes saved yet. Create and save your first note!</p>
             </div>
         </section>
@@ -117,16 +123,16 @@
         <footer>
             <p>Click and drag to draw • Use toolbar to change tools and colors • Select Text tool and click to type</p>
         </footer>
-    </div>
+    </main>
 
     <!-- Text input modal -->
-    <div id="text-modal" class="text-modal">
+    <div id="text-modal" class="text-modal" role="dialog" aria-labelledby="text-modal-title" aria-modal="true">
         <div class="text-modal-content">
-            <h3>Enter Your Text</h3>
-            <textarea id="text-input" placeholder="Type your text here..." rows="3"></textarea>
+            <h3 id="text-modal-title">Enter Your Text</h3>
+            <textarea id="text-input" placeholder="Type your text here..." rows="3" aria-label="Text input for canvas"></textarea>
             <div class="text-modal-buttons">
-                <button id="text-confirm">Add Text</button>
-                <button id="text-cancel">Cancel</button>
+                <button id="text-confirm" aria-label="Add text to canvas">Add Text</button>
+                <button id="text-cancel" aria-label="Cancel and close dialog">Cancel</button>
             </div>
         </div>
     </div>

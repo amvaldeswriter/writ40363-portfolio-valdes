@@ -1,301 +1,332 @@
-// Canvas setup
-const canvas = document.getElementById('art-canvas');
-const ctx = canvas.getContext('2d');
+// ========================================
+// CONSTANTS AND CONFIGURATION
+// ========================================
+const CONSTANTS = {
+    MAX_UNDO_STEPS: 20,
+    GALLERY_KEY: 'stickyNoteGallery',
+    CANVAS_ASPECT_RATIO: 4 / 3,
+    MAX_CANVAS_WIDTH: 800,
+    SPRAY_DENSITY: 20,
+    JPG_QUALITY: 0.95,
+    PDF: {
+        WIDTH: 595,  // A4 width in points (72 DPI)
+        HEIGHT: 842, // A4 height in points
+        MARGIN: 50
+    }
+};
 
-// Set canvas size based on screen width
+// ========================================
+// DOM ELEMENT REFERENCES (cached once)
+// ========================================
+const DOM = {
+    canvas: document.getElementById('art-canvas'),
+    toolButtons: document.querySelectorAll('.tool-btn'),
+    brushSizeSlider: document.getElementById('brush-size'),
+    sizeDisplay: document.getElementById('size-display'),
+    fontSizeSlider: document.getElementById('font-size'),
+    fontSizeDisplay: document.getElementById('font-size-display'),
+    fontSizeGroup: document.getElementById('font-size-group'),
+    colorPicker: document.getElementById('color-picker'),
+    colorPresets: document.querySelectorAll('.color-preset'),
+    undoBtn: document.getElementById('undo-btn'),
+    clearBtn: document.getElementById('clear-btn'),
+    saveBtn: document.getElementById('save-btn'),
+    textModal: document.getElementById('text-modal'),
+    textInput: document.getElementById('text-input'),
+    textConfirm: document.getElementById('text-confirm'),
+    textCancel: document.getElementById('text-cancel'),
+    galleryContainer: document.getElementById('gallery-container'),
+    saveToGalleryBtn: document.getElementById('save-to-gallery-btn'),
+    clearGalleryBtn: document.getElementById('clear-gallery-btn'),
+    exportBtn: document.getElementById('export-btn'),
+    exportMenu: document.getElementById('export-menu'),
+    exportOptions: document.querySelectorAll('.export-option')
+};
+
+const ctx = DOM.canvas.getContext('2d');
+
+// ========================================
+// STATE MANAGEMENT
+// ========================================
+const state = {
+    isDrawing: false,
+    currentTool: 'brush',
+    currentColor: '#000000',
+    currentSize: 5,
+    currentFontSize: 20,
+    lastX: 0,
+    lastY: 0,
+    textClickX: 0,
+    textClickY: 0,
+    undoHistory: []
+};
+
+// ========================================
+// CANVAS SETUP AND UTILITIES
+// ========================================
 function setCanvasSize() {
-    const container = canvas.parentElement;
-    const maxWidth = Math.min(800, container.clientWidth - 40);
-    const aspectRatio = 4 / 3; // 4:3 aspect ratio
+    const container = DOM.canvas.parentElement;
+    const maxWidth = Math.min(CONSTANTS.MAX_CANVAS_WIDTH, container.clientWidth - 40);
     
-    canvas.width = maxWidth;
-    canvas.height = maxWidth / aspectRatio;
+    DOM.canvas.width = maxWidth;
+    DOM.canvas.height = maxWidth / CONSTANTS.CANVAS_ASPECT_RATIO;
     
     // Re-fill with white background after resize
+    fillCanvasWhite();
+}
+
+function fillCanvasWhite() {
     ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, DOM.canvas.width, DOM.canvas.height);
 }
 
-// Initialize canvas
-setCanvasSize();
-
-// Resize canvas when window size changes
-window.addEventListener('resize', setCanvasSize);
-
-// Drawing state
-let isDrawing = false;
-let currentTool = 'brush';
-let currentColor = '#000000';
-let currentSize = 5;
-let currentFontSize = 20;
-let lastX = 0;
-let lastY = 0;
-let textClickX = 0;
-let textClickY = 0;
-
-// Undo history
-let undoHistory = [];
-const MAX_UNDO_STEPS = 20; // Limit history to prevent memory issues
-
-// Initialize canvas with white background
-ctx.fillStyle = 'white';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-// Get elements
-const toolButtons = document.querySelectorAll('.tool-btn');
-const brushSizeSlider = document.getElementById('brush-size');
-const sizeDisplay = document.getElementById('size-display');
-const fontSizeSlider = document.getElementById('font-size');
-const fontSizeDisplay = document.getElementById('font-size-display');
-const fontSizeGroup = document.getElementById('font-size-group');
-const colorPicker = document.getElementById('color-picker');
-const colorPresets = document.querySelectorAll('.color-preset');
-const undoBtn = document.getElementById('undo-btn');
-const clearBtn = document.getElementById('clear-btn');
-const saveBtn = document.getElementById('save-btn');
-const textModal = document.getElementById('text-modal');
-const textInput = document.getElementById('text-input');
-const textConfirm = document.getElementById('text-confirm');
-const textCancel = document.getElementById('text-cancel');
-const galleryContainer = document.getElementById('gallery-container');
-const saveToGalleryBtn = document.getElementById('save-to-gallery-btn');
-const clearGalleryBtn = document.getElementById('clear-gallery-btn');
-
-// Gallery storage
-const GALLERY_KEY = 'stickyNoteGallery';
-
-// Load gallery on page load
-function loadGallery() {
-    const gallery = JSON.parse(localStorage.getItem(GALLERY_KEY) || '[]');
-    displayGallery(gallery);
-}
-
-// Display gallery items
-function displayGallery(gallery) {
-    if (gallery.length === 0) {
-        galleryContainer.innerHTML = '<p class="empty-message">No sticky notes saved yet. Create and save your first note!</p>';
-        return;
-    }
-
-    galleryContainer.innerHTML = '';
-    gallery.forEach((item, index) => {
-        const galleryItem = document.createElement('div');
-        galleryItem.className = 'gallery-item';
-        galleryItem.innerHTML = `
-            <img src="${item.image}" alt="Sticky Note ${index + 1}" class="gallery-item-image">
-            <div class="gallery-item-info">
-                <span class="gallery-item-date">${new Date(item.date).toLocaleDateString()}</span>
-                <div class="gallery-item-actions">
-                    <button class="gallery-item-btn download" data-index="${index}" title="Download">💾</button>
-                    <button class="gallery-item-btn delete" data-index="${index}" title="Delete">🗑️</button>
-                </div>
-            </div>
-        `;
-        galleryContainer.appendChild(galleryItem);
-    });
-
-    // Add event listeners to gallery buttons
-    document.querySelectorAll('.gallery-item-btn.delete').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const index = parseInt(e.target.dataset.index);
-            deleteFromGallery(index);
-        });
-    });
-
-    document.querySelectorAll('.gallery-item-btn.download').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const index = parseInt(e.target.dataset.index);
-            downloadFromGallery(index);
-        });
-    });
-}
-
-// Save current canvas to gallery
-function saveToGallery() {
-    const imageData = canvas.toDataURL('image/png');
-    const gallery = JSON.parse(localStorage.getItem(GALLERY_KEY) || '[]');
-    
-    gallery.push({
-        image: imageData,
-        date: new Date().toISOString()
-    });
-
-    localStorage.setItem(GALLERY_KEY, JSON.stringify(gallery));
-    displayGallery(gallery);
-    
-    // Show success feedback
-    saveToGalleryBtn.textContent = '✅ Saved!';
-    setTimeout(() => {
-        saveToGalleryBtn.innerHTML = '<span>💾</span> Save Current Note';
-    }, 2000);
-}
-
-// Delete item from gallery
-function deleteFromGallery(index) {
-    if (confirm('Are you sure you want to delete this sticky note?')) {
-        const gallery = JSON.parse(localStorage.getItem(GALLERY_KEY) || '[]');
-        gallery.splice(index, 1);
-        localStorage.setItem(GALLERY_KEY, JSON.stringify(gallery));
-        displayGallery(gallery);
-    }
-}
-
-// Download item from gallery
-function downloadFromGallery(index) {
-    const gallery = JSON.parse(localStorage.getItem(GALLERY_KEY) || '[]');
-    const item = gallery[index];
-    
-    const link = document.createElement('a');
-    link.download = `sticky-note-${index + 1}-${Date.now()}.png`;
-    link.href = item.image;
-    link.click();
-}
-
-// Clear entire gallery
-function clearGallery() {
-    if (confirm('Are you sure you want to delete ALL sticky notes from the gallery? This cannot be undone!')) {
-        localStorage.removeItem(GALLERY_KEY);
-        displayGallery([]);
-    }
-}
-
-// Gallery event listeners
-saveToGalleryBtn.addEventListener('click', saveToGallery);
-clearGalleryBtn.addEventListener('click', clearGallery);
-
-// Load gallery on startup
-loadGallery();
-
-// Undo functionality
-function saveCanvasState() {
-    // Save current canvas state to history
-    const canvasState = canvas.toDataURL();
-    undoHistory.push(canvasState);
-    
-    // Limit history size to prevent memory issues
-    if (undoHistory.length > MAX_UNDO_STEPS) {
-        undoHistory.shift(); // Remove oldest state
-    }
-    
-    // Update undo button state
-    updateUndoButton();
-}
-
-function undo() {
-    if (undoHistory.length > 1) {
-        // Remove current state
-        undoHistory.pop();
-        
-        // Get previous state
-        const previousState = undoHistory[undoHistory.length - 1];
-        
-        // Restore canvas from previous state
-        const img = new Image();
-        img.onload = function() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-        };
-        img.src = previousState;
-    }
-    
-    // Update undo button state
-    updateUndoButton();
-}
-
-function updateUndoButton() {
-    // Disable undo button if no history or only initial state
-    if (undoHistory.length <= 1) {
-        undoBtn.disabled = true;
-        undoBtn.style.opacity = '0.5';
-        undoBtn.style.cursor = 'not-allowed';
-    } else {
-        undoBtn.disabled = false;
-        undoBtn.style.opacity = '1';
-        undoBtn.style.cursor = 'pointer';
-    }
-}
-
-// Initialize undo button state
-updateUndoButton();
-
-// Save initial canvas state
-saveCanvasState();
-
-// Tool selection
-toolButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        toolButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentTool = btn.dataset.tool;
-        
-        // Show/hide font size slider for text tool
-        if (currentTool === 'text') {
-            fontSizeGroup.style.display = 'flex';
-            canvas.style.cursor = 'text';
-        } else {
-            fontSizeGroup.style.display = 'none';
-            canvas.style.cursor = 'crosshair';
-        }
-    });
-});
-
-// Brush size control
-brushSizeSlider.addEventListener('input', (e) => {
-    currentSize = e.target.value;
-    sizeDisplay.textContent = `${currentSize}px`;
-});
-
-// Font size control
-fontSizeSlider.addEventListener('input', (e) => {
-    currentFontSize = e.target.value;
-    fontSizeDisplay.textContent = `${currentFontSize}px`;
-});
-
-// Color picker
-colorPicker.addEventListener('input', (e) => {
-    currentColor = e.target.value;
-});
-
-// Color presets
-colorPresets.forEach(preset => {
-    preset.addEventListener('click', () => {
-        currentColor = preset.dataset.color;
-        colorPicker.value = currentColor;
-    });
-});
-
-// Get mouse position relative to canvas
 function getMousePos(e) {
-    const rect = canvas.getBoundingClientRect();
+    const rect = DOM.canvas.getBoundingClientRect();
     return {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
     };
 }
 
-// Drawing functions
+// Initialize canvas
+setCanvasSize();
+window.addEventListener('resize', setCanvasSize);
+
+// ========================================
+// GALLERY MANAGEMENT
+// ========================================
+function getGalleryFromStorage() {
+    return JSON.parse(localStorage.getItem(CONSTANTS.GALLERY_KEY) || '[]');
+}
+
+function saveGalleryToStorage(gallery) {
+    localStorage.setItem(CONSTANTS.GALLERY_KEY, JSON.stringify(gallery));
+}
+
+// Load gallery on page load
+function loadGallery() {
+    const gallery = getGalleryFromStorage();
+    displayGallery(gallery);
+}
+
+// Display gallery items
+function displayGallery(gallery) {
+    if (gallery.length === 0) {
+        DOM.galleryContainer.innerHTML = '<p class="empty-message">No sticky notes saved yet. Create and save your first note!</p>';
+        return;
+    }
+
+    DOM.galleryContainer.innerHTML = '';
+    gallery.forEach((item, index) => {
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+        galleryItem.setAttribute('role', 'listitem');
+        galleryItem.innerHTML = `
+            <img src="${item.image}" alt="Sticky Note saved on ${new Date(item.date).toLocaleDateString()}" class="gallery-item-image">
+            <div class="gallery-item-info">
+                <span class="gallery-item-date">${new Date(item.date).toLocaleDateString()}</span>
+                <div class="gallery-item-actions">
+                    <button class="gallery-item-btn download" data-index="${index}" title="Download" aria-label="Download sticky note ${index + 1}">💾</button>
+                    <button class="gallery-item-btn delete" data-index="${index}" title="Delete" aria-label="Delete sticky note ${index + 1}">🗑️</button>
+                </div>
+            </div>
+        `;
+        DOM.galleryContainer.appendChild(galleryItem);
+    });
+
+    // Use event delegation for gallery buttons
+    DOM.galleryContainer.removeEventListener('click', handleGalleryClick);
+    DOM.galleryContainer.addEventListener('click', handleGalleryClick);
+}
+
+// Handle gallery button clicks using event delegation
+function handleGalleryClick(e) {
+    const target = e.target.closest('.gallery-item-btn');
+    if (!target) return;
+    
+    const index = parseInt(target.dataset.index);
+    
+    if (target.classList.contains('delete')) {
+        deleteFromGallery(index);
+    } else if (target.classList.contains('download')) {
+        downloadFromGallery(index);
+    }
+}
+
+// Save current canvas to gallery
+function saveToGallery() {
+    const imageData = DOM.canvas.toDataURL('image/png');
+    const gallery = getGalleryFromStorage();
+    
+    gallery.push({
+        image: imageData,
+        date: new Date().toISOString()
+    });
+
+    saveGalleryToStorage(gallery);
+    displayGallery(gallery);
+    
+    // Show success feedback
+    DOM.saveToGalleryBtn.textContent = '✅ Saved!';
+    setTimeout(() => {
+        DOM.saveToGalleryBtn.innerHTML = '<span aria-hidden="true">💾</span> Save Current Note';
+    }, 2000);
+}
+
+// Delete item from gallery
+function deleteFromGallery(index) {
+    if (confirm('Are you sure you want to delete this sticky note?')) {
+        const gallery = getGalleryFromStorage();
+        gallery.splice(index, 1);
+        saveGalleryToStorage(gallery);
+        displayGallery(gallery);
+    }
+}
+
+// Download item from gallery
+function downloadFromGallery(index) {
+    const gallery = getGalleryFromStorage();
+    const item = gallery[index];
+    
+    downloadFile(item.image, `sticky-note-${index + 1}-${Date.now()}.png`);
+}
+
+// Clear entire gallery
+function clearGallery() {
+    if (confirm('Are you sure you want to delete ALL sticky notes from the gallery? This cannot be undone!')) {
+        localStorage.removeItem(CONSTANTS.GALLERY_KEY);
+        displayGallery([]);
+    }
+}
+
+// ========================================
+// UNDO FUNCTIONALITY
+// ========================================
+function saveCanvasState() {
+    // Save current canvas state to history
+    const canvasState = DOM.canvas.toDataURL();
+    state.undoHistory.push(canvasState);
+    
+    // Limit history size to prevent memory issues
+    if (state.undoHistory.length > CONSTANTS.MAX_UNDO_STEPS) {
+        state.undoHistory.shift(); // Remove oldest state
+    }
+    
+    updateUndoButton();
+}
+
+function undo() {
+    if (state.undoHistory.length > 1) {
+        // Remove current state
+        state.undoHistory.pop();
+        
+        // Get previous state
+        const previousState = state.undoHistory[state.undoHistory.length - 1];
+        
+        // Restore canvas from previous state
+        const img = new Image();
+        img.onload = function() {
+            ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = previousState;
+    }
+    
+    updateUndoButton();
+}
+
+function updateUndoButton() {
+    // Disable undo button if no history or only initial state
+    const isDisabled = state.undoHistory.length <= 1;
+    DOM.undoBtn.disabled = isDisabled;
+    DOM.undoBtn.style.opacity = isDisabled ? '0.5' : '1';
+    DOM.undoBtn.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
+    DOM.undoBtn.setAttribute('aria-disabled', isDisabled);
+}
+
+// ========================================
+// TOOL SELECTION AND CONTROLS
+// ========================================
+function selectTool(tool) {
+    state.currentTool = tool;
+    
+    // Show/hide font size slider for text tool
+    if (tool === 'text') {
+        DOM.fontSizeGroup.classList.remove('hidden');
+        DOM.canvas.style.cursor = 'text';
+    } else {
+        DOM.fontSizeGroup.classList.add('hidden');
+        DOM.canvas.style.cursor = 'crosshair';
+    }
+}
+
+DOM.toolButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Update UI
+        DOM.toolButtons.forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        
+        // Select tool
+        selectTool(btn.dataset.tool);
+    });
+});
+
+// Brush size control
+DOM.brushSizeSlider.addEventListener('input', (e) => {
+    state.currentSize = e.target.value;
+    DOM.sizeDisplay.textContent = `${state.currentSize}px`;
+    e.target.setAttribute('aria-valuenow', state.currentSize);
+});
+
+// Font size control
+DOM.fontSizeSlider.addEventListener('input', (e) => {
+    state.currentFontSize = e.target.value;
+    DOM.fontSizeDisplay.textContent = `${state.currentFontSize}px`;
+    e.target.setAttribute('aria-valuenow', state.currentFontSize);
+});
+
+// Color picker
+DOM.colorPicker.addEventListener('input', (e) => {
+    state.currentColor = e.target.value;
+});
+
+// Color presets
+DOM.colorPresets.forEach(preset => {
+    preset.addEventListener('click', () => {
+        state.currentColor = preset.dataset.color;
+        DOM.colorPicker.value = state.currentColor;
+    });
+});
+
+// ========================================
+// DRAWING FUNCTIONS
+// ========================================
 function startDrawing(e) {
     // If text tool is active, handle differently
-    if (currentTool === 'text') {
+    if (state.currentTool === 'text') {
         const pos = getMousePos(e);
-        textClickX = pos.x;
-        textClickY = pos.y;
+        state.textClickX = pos.x;
+        state.textClickY = pos.y;
         openTextModal();
         return;
     }
     
-    isDrawing = true;
+    state.isDrawing = true;
     const pos = getMousePos(e);
-    lastX = pos.x;
-    lastY = pos.y;
+    state.lastX = pos.x;
+    state.lastY = pos.y;
 }
 
 function draw(e) {
-    if (!isDrawing) return;
+    if (!state.isDrawing) return;
 
     const pos = getMousePos(e);
 
-    switch (currentTool) {
+    switch (state.currentTool) {
         case 'brush':
             drawBrush(pos.x, pos.y);
             break;
@@ -307,77 +338,78 @@ function draw(e) {
             break;
     }
 
-    lastX = pos.x;
-    lastY = pos.y;
+    state.lastX = pos.x;
+    state.lastY = pos.y;
 }
 
 function drawBrush(x, y) {
-    ctx.strokeStyle = currentColor;
-    ctx.lineWidth = currentSize;
+    ctx.strokeStyle = state.currentColor;
+    ctx.lineWidth = state.currentSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
+    ctx.moveTo(state.lastX, state.lastY);
     ctx.lineTo(x, y);
     ctx.stroke();
 }
 
 function drawEraser(x, y) {
     ctx.strokeStyle = 'white';
-    ctx.lineWidth = currentSize;
+    ctx.lineWidth = state.currentSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
+    ctx.moveTo(state.lastX, state.lastY);
     ctx.lineTo(x, y);
     ctx.stroke();
 }
 
 function drawSpray(x, y) {
-    const density = 20;
-    const radius = currentSize;
+    const radius = state.currentSize;
 
-    for (let i = 0; i < density; i++) {
+    for (let i = 0; i < CONSTANTS.SPRAY_DENSITY; i++) {
         const offsetX = (Math.random() - 0.5) * radius * 2;
         const offsetY = (Math.random() - 0.5) * radius * 2;
 
-        ctx.fillStyle = currentColor;
+        ctx.fillStyle = state.currentColor;
         ctx.fillRect(x + offsetX, y + offsetY, 1, 1);
     }
 }
 
 function stopDrawing() {
-    if (isDrawing) {
-        isDrawing = false;
+    if (state.isDrawing) {
+        state.isDrawing = false;
         // Save canvas state after drawing action
         saveCanvasState();
     }
 }
 
-// Text tool functions
+// ========================================
+// TEXT TOOL FUNCTIONS
+// ========================================
 function openTextModal() {
-    textModal.classList.add('active');
-    textInput.value = '';
-    textInput.focus();
+    DOM.textModal.classList.add('active');
+    DOM.textInput.value = '';
+    DOM.textInput.focus();
 }
 
 function closeTextModal() {
-    textModal.classList.remove('active');
+    DOM.textModal.classList.remove('active');
 }
 
 function addTextToCanvas() {
-    const text = textInput.value.trim();
+    const text = DOM.textInput.value.trim();
     if (text) {
-        ctx.font = `${currentFontSize}px Arial, sans-serif`;
-        ctx.fillStyle = currentColor;
+        ctx.font = `${state.currentFontSize}px Arial, sans-serif`;
+        ctx.fillStyle = state.currentColor;
         ctx.textBaseline = 'top';
         
         // Split text by newlines to support multi-line
         const lines = text.split('\n');
         lines.forEach((line, index) => {
-            ctx.fillText(line, textClickX, textClickY + (index * currentFontSize * 1.2));
+            ctx.fillText(line, state.textClickX, state.textClickY + (index * state.currentFontSize * 1.2));
         });
         
         // Save canvas state after adding text
@@ -386,12 +418,62 @@ function addTextToCanvas() {
     closeTextModal();
 }
 
+// ========================================
+// CANVAS EVENT LISTENERS
+// ========================================
+DOM.canvas.addEventListener('mousedown', startDrawing);
+DOM.canvas.addEventListener('mousemove', draw);
+DOM.canvas.addEventListener('mouseup', stopDrawing);
+DOM.canvas.addEventListener('mouseout', stopDrawing);
+
+// Touch support for tablets/touchpads and mobile devices
+function createTouchHandler(eventType) {
+    return function(e) {
+        e.preventDefault();
+        const touch = e.touches ? e.touches[0] : null;
+        if (!touch && eventType !== 'mouseup') return;
+        
+        const mouseEvent = new MouseEvent(eventType, {
+            clientX: touch ? touch.clientX : 0,
+            clientY: touch ? touch.clientY : 0
+        });
+        DOM.canvas.dispatchEvent(mouseEvent);
+    };
+}
+
+DOM.canvas.addEventListener('touchstart', createTouchHandler('mousedown'), { passive: false });
+DOM.canvas.addEventListener('touchmove', createTouchHandler('mousemove'), { passive: false });
+DOM.canvas.addEventListener('touchend', createTouchHandler('mouseup'), { passive: false });
+
+// ========================================
+// ACTION BUTTON EVENT LISTENERS
+// ========================================
+// Clear canvas
+DOM.clearBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear the canvas?')) {
+        fillCanvasWhite();
+        saveCanvasState();
+    }
+});
+
+// Undo button
+DOM.undoBtn.addEventListener('click', undo);
+
+// Save image
+DOM.saveBtn.addEventListener('click', () => {
+    downloadFile(DOM.canvas.toDataURL(), `artwork-${Date.now()}.png`);
+});
+
+// Gallery event listeners
+DOM.saveToGalleryBtn.addEventListener('click', saveToGallery);
+DOM.clearGalleryBtn.addEventListener('click', clearGallery);
+
 // Text modal event listeners
-textConfirm.addEventListener('click', addTextToCanvas);
-textCancel.addEventListener('click', closeTextModal);
+DOM.textConfirm.addEventListener('click', addTextToCanvas);
+DOM.textCancel.addEventListener('click', closeTextModal);
 
 // Allow Enter key to confirm (with Shift+Enter for new lines)
-textInput.addEventListener('keydown', (e) => {
+DOM.textInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         addTextToCanvas();
@@ -399,106 +481,45 @@ textInput.addEventListener('keydown', (e) => {
 });
 
 // Close modal when clicking outside
-textModal.addEventListener('click', (e) => {
-    if (e.target === textModal) {
+DOM.textModal.addEventListener('click', (e) => {
+    if (e.target === DOM.textModal) {
         closeTextModal();
     }
 });
 
-// Canvas event listeners
-canvas.addEventListener('mousedown', startDrawing);
-canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseup', stopDrawing);
-canvas.addEventListener('mouseout', stopDrawing);
+// ========================================
+// KEYBOARD SHORTCUTS
+// ========================================
+const KEYBOARD_SHORTCUTS = {
+    'z': () => undo(), // Handled separately with Ctrl/Cmd check
+    'b': () => document.querySelector('[data-tool="brush"]').click(),
+    'e': () => document.querySelector('[data-tool="eraser"]').click(),
+    's': () => document.querySelector('[data-tool="spray"]').click(),
+    't': () => document.querySelector('[data-tool="text"]').click(),
+    '[': () => adjustBrushSize(-1),
+    ']': () => adjustBrushSize(1)
+};
 
-// Touch support for tablets/touchpads and mobile devices
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const mouseEvent = new MouseEvent('mousedown', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-    });
-    canvas.dispatchEvent(mouseEvent);
-}, { passive: false });
+function adjustBrushSize(delta) {
+    const newSize = Math.max(1, Math.min(50, state.currentSize + delta));
+    state.currentSize = newSize;
+    DOM.brushSizeSlider.value = newSize;
+    DOM.sizeDisplay.textContent = `${newSize}px`;
+    DOM.brushSizeSlider.setAttribute('aria-valuenow', newSize);
+}
 
-canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const mouseEvent = new MouseEvent('mousemove', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-    });
-    canvas.dispatchEvent(mouseEvent);
-}, { passive: false });
-
-canvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-    const mouseEvent = new MouseEvent('mouseup', {});
-    canvas.dispatchEvent(mouseEvent);
-}, { passive: false });
-
-// Clear canvas
-clearBtn.addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear the canvas?')) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        // Save canvas state after clearing
-        saveCanvasState();
-    }
-});
-
-// Undo button
-undoBtn.addEventListener('click', undo);
-
-// Save image
-saveBtn.addEventListener('click', () => {
-    const link = document.createElement('a');
-    link.download = `artwork-${Date.now()}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
-});
-
-// Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
     // Ctrl+Z or Cmd+Z for undo
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         undo();
+        return;
     }
-    // B for brush
-    if (e.key === 'b' || e.key === 'B') {
-        document.querySelector('[data-tool="brush"]').click();
-    }
-    // E for eraser
-    if (e.key === 'e' || e.key === 'E') {
-        document.querySelector('[data-tool="eraser"]').click();
-    }
-    // S for spray
-    if (e.key === 's' || e.key === 'S') {
-        document.querySelector('[data-tool="spray"]').click();
-    }
-    // T for text
-    if (e.key === 't' || e.key === 'T') {
-        document.querySelector('[data-tool="text"]').click();
-    }
-    // [ to decrease brush size
-    if (e.key === '[') {
-        if (currentSize > 1) {
-            currentSize--;
-            brushSizeSlider.value = currentSize;
-            sizeDisplay.textContent = `${currentSize}px`;
-        }
-    }
-    // ] to increase brush size
-    if (e.key === ']') {
-        if (currentSize < 50) {
-            currentSize++;
-            brushSizeSlider.value = currentSize;
-            sizeDisplay.textContent = `${currentSize}px`;
-        }
+    
+    // Other shortcuts
+    const key = e.key.toLowerCase();
+    if (KEYBOARD_SHORTCUTS[key]) {
+        KEYBOARD_SHORTCUTS[key]();
     }
 });
 
@@ -507,60 +528,70 @@ console.log('Art canvas loaded! Keyboard shortcuts: Ctrl/Cmd+Z=Undo, B=Brush, E=
 // ========================================
 // EXPORT MENU FUNCTIONALITY
 // ========================================
-
-const exportBtn = document.getElementById('export-btn');
-const exportMenu = document.getElementById('export-menu');
-const exportOptions = document.querySelectorAll('.export-option');
-
 // Toggle export menu
-exportBtn.addEventListener('click', (e) => {
+DOM.exportBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    exportMenu.classList.toggle('show');
+    const isExpanded = DOM.exportMenu.classList.toggle('show');
+    DOM.exportBtn.setAttribute('aria-expanded', isExpanded);
 });
 
 // Close menu when clicking outside
 document.addEventListener('click', (e) => {
-    if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
-        exportMenu.classList.remove('show');
+    if (!DOM.exportBtn.contains(e.target) && !DOM.exportMenu.contains(e.target)) {
+        DOM.exportMenu.classList.remove('show');
+        DOM.exportBtn.setAttribute('aria-expanded', 'false');
     }
 });
 
 // Handle export format selection
-exportOptions.forEach(option => {
+DOM.exportOptions.forEach(option => {
     option.addEventListener('click', () => {
         const format = option.dataset.format;
         exportDrawing(format);
-        exportMenu.classList.remove('show');
+        DOM.exportMenu.classList.remove('show');
+        DOM.exportBtn.setAttribute('aria-expanded', 'false');
     });
 });
 
 // Export drawing in specified format
 function exportDrawing(format) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+    const timestamp = new Date().toISOString().split('T')[0];
     const filename = `sticky-note-${timestamp}`;
     
-    switch(format) {
-        case 'png':
-            exportAsPNG(filename);
-            break;
-        case 'jpg':
-            exportAsJPG(filename);
-            break;
-        case 'svg':
-            exportAsSVG(filename);
-            break;
-        case 'pdf':
-            exportAsPDF(filename);
-            break;
-        default:
-            console.error('Unknown export format:', format);
+    const exportFunctions = {
+        png: exportAsPNG,
+        jpg: exportAsJPG,
+        svg: exportAsSVG,
+        pdf: exportAsPDF
+    };
+    
+    const exportFunc = exportFunctions[format];
+    if (exportFunc) {
+        exportFunc(filename);
+    } else {
+        console.error('Unknown export format:', format);
     }
+}
+
+// Helper function to create temp canvas with white background
+function createTempCanvasWithBackground() {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = DOM.canvas.width;
+    tempCanvas.height = DOM.canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // Fill with white background
+    tempCtx.fillStyle = 'white';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.drawImage(DOM.canvas, 0, 0);
+    
+    return tempCanvas;
 }
 
 // Export as PNG
 function exportAsPNG(filename) {
     try {
-        const dataUrl = canvas.toDataURL('image/png');
+        const dataUrl = DOM.canvas.toDataURL('image/png');
         downloadFile(dataUrl, `${filename}.png`);
         console.log('Exported as PNG');
     } catch (error) {
@@ -572,20 +603,8 @@ function exportAsPNG(filename) {
 // Export as JPG
 function exportAsJPG(filename) {
     try {
-        // Create a temporary canvas with white background for JPG
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = canvas.width;
-        tempCanvas.height = canvas.height;
-        const tempCtx = tempCanvas.getContext('2d');
-        
-        // Fill with white background (JPG doesn't support transparency)
-        tempCtx.fillStyle = 'white';
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Draw the original canvas on top
-        tempCtx.drawImage(canvas, 0, 0);
-        
-        const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.95);
+        const tempCanvas = createTempCanvasWithBackground();
+        const dataUrl = tempCanvas.toDataURL('image/jpeg', CONSTANTS.JPG_QUALITY);
         downloadFile(dataUrl, `${filename}.jpg`);
         console.log('Exported as JPG');
     } catch (error) {
@@ -597,7 +616,6 @@ function exportAsJPG(filename) {
 // Export as SVG
 function exportAsSVG(filename) {
     try {
-        // Create SVG from canvas content
         const svgString = createSVGFromCanvas();
         const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -612,43 +630,31 @@ function exportAsSVG(filename) {
 
 // Create SVG from canvas
 function createSVGFromCanvas() {
-    const width = canvas.width;
-    const height = canvas.height;
+    const width = DOM.canvas.width;
+    const height = DOM.canvas.height;
+    const imageData = DOM.canvas.toDataURL('image/png');
     
-    // Get canvas as base64 image
-    const imageData = canvas.toDataURL('image/png');
-    
-    // Create SVG with embedded image
-    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+    return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
      width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
     <title>Sticky Note Drawing</title>
     <desc>Created with Virtual Sticky Notes</desc>
     <image width="${width}" height="${height}" xlink:href="${imageData}"/>
 </svg>`;
-    
-    return svg;
 }
 
 // Export as PDF
 function exportAsPDF(filename) {
     try {
-        // For PDF export, we'll create a simple PDF with the canvas image
-        // This uses a basic approach - for more advanced features, you'd need a library like jsPDF
-        
-        // Create a temporary canvas for PDF size
         const tempCanvas = document.createElement('canvas');
-        const pdfWidth = 595; // A4 width in points (72 DPI)
-        const pdfHeight = 842; // A4 height in points
+        const { WIDTH: pdfWidth, HEIGHT: pdfHeight, MARGIN: margin } = CONSTANTS.PDF;
         
-        // Calculate scaling to fit canvas on A4 page with margins
-        const margin = 50;
+        // Calculate scaling to fit A4 with margins
         const maxWidth = pdfWidth - (margin * 2);
         const maxHeight = pdfHeight - (margin * 2);
-        
-        const scale = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
-        const scaledWidth = canvas.width * scale;
-        const scaledHeight = canvas.height * scale;
+        const scale = Math.min(maxWidth / DOM.canvas.width, maxHeight / DOM.canvas.height);
+        const scaledWidth = DOM.canvas.width * scale;
+        const scaledHeight = DOM.canvas.height * scale;
         
         tempCanvas.width = pdfWidth;
         tempCanvas.height = pdfHeight;
@@ -661,21 +667,17 @@ function exportAsPDF(filename) {
         // Center the image
         const x = (pdfWidth - scaledWidth) / 2;
         const y = (pdfHeight - scaledHeight) / 2;
+        tempCtx.drawImage(DOM.canvas, x, y, scaledWidth, scaledHeight);
         
-        tempCtx.drawImage(canvas, x, y, scaledWidth, scaledHeight);
-        
-        // Add title at bottom
+        // Add footer title
         tempCtx.fillStyle = '#666';
         tempCtx.font = '12px Cabin, sans-serif';
         tempCtx.textAlign = 'center';
         tempCtx.fillText('Virtual Sticky Note', pdfWidth / 2, pdfHeight - 20);
         
-        // Convert to image and download
-        // Note: This creates an image file that can be converted to PDF
-        // For true PDF generation, integrate jsPDF library
         const dataUrl = tempCanvas.toDataURL('image/png');
         
-        // Create a simple HTML page that can be printed as PDF
+        // Open print dialog with formatted page
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
             <!DOCTYPE html>
@@ -692,9 +694,7 @@ function exportAsPDF(filename) {
                 <img src="${dataUrl}" alt="Sticky Note" />
                 <script>
                     window.onload = function() {
-                        setTimeout(function() {
-                            window.print();
-                        }, 500);
+                        setTimeout(function() { window.print(); }, 500);
                     };
                 </script>
             </body>
@@ -721,3 +721,15 @@ function downloadFile(dataUrl, filename) {
 }
 
 console.log('Export menu loaded! Click Export button to download in PNG, JPG, SVG, or PDF format.');
+
+// ========================================
+// INITIALIZATION
+// ========================================
+// Initialize undo button state
+updateUndoButton();
+
+// Save initial canvas state
+saveCanvasState();
+
+// Load gallery on startup
+loadGallery();
