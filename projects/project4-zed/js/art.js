@@ -503,3 +503,221 @@ document.addEventListener('keydown', (e) => {
 });
 
 console.log('Art canvas loaded! Keyboard shortcuts: Ctrl/Cmd+Z=Undo, B=Brush, E=Eraser, S=Spray, T=Text, [=Decrease size, ]=Increase size');
+
+// ========================================
+// EXPORT MENU FUNCTIONALITY
+// ========================================
+
+const exportBtn = document.getElementById('export-btn');
+const exportMenu = document.getElementById('export-menu');
+const exportOptions = document.querySelectorAll('.export-option');
+
+// Toggle export menu
+exportBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    exportMenu.classList.toggle('show');
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+    if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+        exportMenu.classList.remove('show');
+    }
+});
+
+// Handle export format selection
+exportOptions.forEach(option => {
+    option.addEventListener('click', () => {
+        const format = option.dataset.format;
+        exportDrawing(format);
+        exportMenu.classList.remove('show');
+    });
+});
+
+// Export drawing in specified format
+function exportDrawing(format) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+    const filename = `sticky-note-${timestamp}`;
+    
+    switch(format) {
+        case 'png':
+            exportAsPNG(filename);
+            break;
+        case 'jpg':
+            exportAsJPG(filename);
+            break;
+        case 'svg':
+            exportAsSVG(filename);
+            break;
+        case 'pdf':
+            exportAsPDF(filename);
+            break;
+        default:
+            console.error('Unknown export format:', format);
+    }
+}
+
+// Export as PNG
+function exportAsPNG(filename) {
+    try {
+        const dataUrl = canvas.toDataURL('image/png');
+        downloadFile(dataUrl, `${filename}.png`);
+        console.log('Exported as PNG');
+    } catch (error) {
+        console.error('PNG export failed:', error);
+        alert('Failed to export as PNG. Please try again.');
+    }
+}
+
+// Export as JPG
+function exportAsJPG(filename) {
+    try {
+        // Create a temporary canvas with white background for JPG
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // Fill with white background (JPG doesn't support transparency)
+        tempCtx.fillStyle = 'white';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Draw the original canvas on top
+        tempCtx.drawImage(canvas, 0, 0);
+        
+        const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.95);
+        downloadFile(dataUrl, `${filename}.jpg`);
+        console.log('Exported as JPG');
+    } catch (error) {
+        console.error('JPG export failed:', error);
+        alert('Failed to export as JPG. Please try again.');
+    }
+}
+
+// Export as SVG
+function exportAsSVG(filename) {
+    try {
+        // Create SVG from canvas content
+        const svgString = createSVGFromCanvas();
+        const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        downloadFile(url, `${filename}.svg`);
+        URL.revokeObjectURL(url);
+        console.log('Exported as SVG');
+    } catch (error) {
+        console.error('SVG export failed:', error);
+        alert('Failed to export as SVG. Please try again.');
+    }
+}
+
+// Create SVG from canvas
+function createSVGFromCanvas() {
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Get canvas as base64 image
+    const imageData = canvas.toDataURL('image/png');
+    
+    // Create SVG with embedded image
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+     width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <title>Sticky Note Drawing</title>
+    <desc>Created with Virtual Sticky Notes</desc>
+    <image width="${width}" height="${height}" xlink:href="${imageData}"/>
+</svg>`;
+    
+    return svg;
+}
+
+// Export as PDF
+function exportAsPDF(filename) {
+    try {
+        // For PDF export, we'll create a simple PDF with the canvas image
+        // This uses a basic approach - for more advanced features, you'd need a library like jsPDF
+        
+        // Create a temporary canvas for PDF size
+        const tempCanvas = document.createElement('canvas');
+        const pdfWidth = 595; // A4 width in points (72 DPI)
+        const pdfHeight = 842; // A4 height in points
+        
+        // Calculate scaling to fit canvas on A4 page with margins
+        const margin = 50;
+        const maxWidth = pdfWidth - (margin * 2);
+        const maxHeight = pdfHeight - (margin * 2);
+        
+        const scale = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
+        const scaledWidth = canvas.width * scale;
+        const scaledHeight = canvas.height * scale;
+        
+        tempCanvas.width = pdfWidth;
+        tempCanvas.height = pdfHeight;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // White background
+        tempCtx.fillStyle = 'white';
+        tempCtx.fillRect(0, 0, pdfWidth, pdfHeight);
+        
+        // Center the image
+        const x = (pdfWidth - scaledWidth) / 2;
+        const y = (pdfHeight - scaledHeight) / 2;
+        
+        tempCtx.drawImage(canvas, x, y, scaledWidth, scaledHeight);
+        
+        // Add title at bottom
+        tempCtx.fillStyle = '#666';
+        tempCtx.font = '12px Cabin, sans-serif';
+        tempCtx.textAlign = 'center';
+        tempCtx.fillText('Virtual Sticky Note', pdfWidth / 2, pdfHeight - 20);
+        
+        // Convert to image and download
+        // Note: This creates an image file that can be converted to PDF
+        // For true PDF generation, integrate jsPDF library
+        const dataUrl = tempCanvas.toDataURL('image/png');
+        
+        // Create a simple HTML page that can be printed as PDF
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${filename}</title>
+                <style>
+                    body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                    img { max-width: 100%; height: auto; }
+                    @media print { body { margin: 0; } img { width: 100%; height: auto; page-break-inside: avoid; } }
+                </style>
+            </head>
+            <body>
+                <img src="${dataUrl}" alt="Sticky Note" />
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                        }, 500);
+                    };
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        
+        console.log('Opened PDF print dialog');
+        alert('PDF print dialog opened. Use "Save as PDF" in the print dialog.');
+    } catch (error) {
+        console.error('PDF export failed:', error);
+        alert('Failed to export as PDF. Please try again.');
+    }
+}
+
+// Helper function to download files
+function downloadFile(dataUrl, filename) {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+console.log('Export menu loaded! Click Export button to download in PNG, JPG, SVG, or PDF format.');
