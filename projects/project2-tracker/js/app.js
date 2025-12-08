@@ -156,6 +156,9 @@ function searchFavorites() {
 
         // Create the star rating display
         let starsDisplay = '⭐'.repeat(favorite.rating);
+        
+        // Create the safety display
+        let safetyDisplay = '❤️'.repeat(favorite.safety || 3);
 
         // Build the HTML for this favorite card
         const cardHTML = `
@@ -163,6 +166,7 @@ function searchFavorites() {
                 <h3>${favorite.name}</h3>
                 <span class="favorite-category">${favorite.category}</span>
                 <div class="favorite-rating">${starsDisplay} (${favorite.rating}/5)</div>
+                <div class="favorite-safety">${safetyDisplay} (${favorite.safety || 3}/5)</div>
                 <p class="favorite-notes">${favorite.notes}</p>
                 <p class="favorite-date">Added: ${favorite.dateAdded}</p>
                 <div class="favorite-actions">
@@ -180,6 +184,9 @@ function searchFavorites() {
 favorites.forEach(function(favorite, index) {
     // Create the star rating display
     let starsDisplay = '⭐'.repeat(favorite.rating);
+    
+    // Create the safety display
+    let safetyDisplay = '❤️'.repeat(favorite.safety || 3);
 
     // Build the HTML for this favorite card
     const cardHTML = `
@@ -187,6 +194,7 @@ favorites.forEach(function(favorite, index) {
             <h3>${favorite.name}</h3>
             <span class="favorite-category">${favorite.category}</span>
             <div class="favorite-rating">${starsDisplay} (${favorite.rating}/5)</div>
+            <div class="favorite-safety">${safetyDisplay} (${favorite.safety || 3}/5)</div>
             <p class="favorite-notes">${favorite.notes}</p>
             <p class="favorite-date">Added: ${favorite.dateAdded}</p>
             <div class="favorite-actions">
@@ -212,11 +220,13 @@ function addFavorite(event) {
     const nameInput = document.getElementById('name');
     const categoryInput = document.getElementById('category');
     const ratingInput = document.getElementById('rating');
+    const safetyInput = document.getElementById('safety');
     const notesInput = document.getElementById('notes');
 
     const nameValue = nameInput.value;
     const categoryValue = categoryInput.value;
     const ratingValue = parseInt(ratingInput.value);  // Convert to number
+    const safetyValue = parseInt(safetyInput.value);  // Convert to number
     const notesValue = notesInput.value;
 
     // Step 2: Validate required fields
@@ -230,6 +240,7 @@ function addFavorite(event) {
         name: nameValue,
         category: categoryValue,
         rating: ratingValue,
+        safety: safetyValue,
         notes: notesValue,
         dateAdded: new Date().toLocaleDateString()
     };
