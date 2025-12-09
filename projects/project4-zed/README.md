@@ -182,7 +182,7 @@ All AI interactions are documented in `ai_collaboration_log.md` with sample conv
 
 - **Developer:** Ava Valdes
 - **Course Instructor:** TCU WRIT 40363
-- **AI Tools:** GitHub Copilot, Claude AI, ChatGPT
+- **AI Tools:** GitHub Copilot, Claude AI
 - **Inspiration:** The need for a simple, accessible creative tool for quick sketches and notes
 
 ## 📄 License
