@@ -414,6 +414,20 @@ footer {
     color: var(--heading-color);
 }
 
+/* Text wrapping tip message */
+.text-modal-content::before {
+    content: "💡 Tip: Text will automatically wrap to fit the canvas width";
+    display: block;
+    font-size: 0.85rem;
+    color: var(--light-text);
+    font-style: italic;
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-xs);
+    background: var(--card-background);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--accent-color);
+}
+
 #text-input {
     width: 100%;
     padding: 0.75rem;
@@ -422,12 +436,24 @@ footer {
     font-size: 1rem;
     font-family: 'Cabin', serif;
     resize: vertical;
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: 0.25rem;
+    min-height: 100px;
+    line-height: 1.4;
 }
 
 #text-input:focus {
     outline: none;
     border-color: var(--accent-color);
+}
+
+/* Character counter styling */
+#char-counter {
+    font-size: 0.85rem;
+    color: var(--light-text);
+    margin-top: 0.5rem;
+    margin-bottom: var(--spacing-sm);
+    text-align: right;
+    transition: color var(--transition-fast);
 }
 
 .text-modal-buttons {

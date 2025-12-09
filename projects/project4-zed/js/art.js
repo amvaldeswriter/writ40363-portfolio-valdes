@@ -12,6 +12,11 @@ const CONSTANTS = {
         WIDTH: 595,  // A4 width in points (72 DPI)
         HEIGHT: 842, // A4 height in points
         MARGIN: 50
+    },
+    TEXT: {
+        PADDING: 20,           // Canvas edge padding for text
+        LINE_HEIGHT_FACTOR: 1.2,  // Multiplier for line spacing
+        AVG_CHAR_WIDTH_FACTOR: 0.6  // Average character width relative to font size
     }
 };
 
@@ -393,28 +398,145 @@ function openTextModal() {
     DOM.textModal.classList.add('active');
     DOM.textInput.value = '';
     DOM.textInput.focus();
+    
+    // Initialize character counter
+    initializeCharacterCounter();
 }
 
 function closeTextModal() {
     DOM.textModal.classList.remove('active');
 }
 
+function initializeCharacterCounter() {
+    // Check if counter already exists
+    let counter = document.getElementById('char-counter');
+    if (!counter) {
+        counter = document.createElement('div');
+        counter.id = 'char-counter';
+        counter.style.cssText = `
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+            text-align: right;
+            transition: color 0.3s ease;
+        `;
+        DOM.textInput.parentNode.insertBefore(counter, DOM.textInput.nextSibling);
+        
+        // Add input event listener once
+        DOM.textInput.addEventListener('input', updateCharacterCounter);
+    }
+    
+    // Trigger initial update
+    updateCharacterCounter();
+}
+
+function updateCharacterCounter() {
+    const counter = document.getElementById('char-counter');
+    if (!counter) return;
+    
+    const text = DOM.textInput.value;
+    const length = text.length;
+    const maxWidth = DOM.canvas.width - (CONSTANTS.TEXT.PADDING * 2);
+    const lineHeight = state.currentFontSize * CONSTANTS.TEXT.LINE_HEIGHT_FACTOR;
+    
+    // Estimate characters per line
+    const avgCharWidth = state.currentFontSize * CONSTANTS.TEXT.AVG_CHAR_WIDTH_FACTOR;
+    const charsPerLine = Math.floor(maxWidth / avgCharWidth);
+    const estimatedLines = Math.ceil(length / charsPerLine);
+    
+    // Calculate max lines that fit on canvas
+    const maxLines = Math.floor((DOM.canvas.height - (CONSTANTS.TEXT.PADDING * 2)) / lineHeight);
+    
+    // Update counter text
+    counter.textContent = `${length} characters | ~${estimatedLines} lines`;
+    
+    // Warning if text might exceed canvas
+    if (estimatedLines > maxLines) {
+        counter.style.color = '#ef4444';  // Red warning color
+        counter.textContent += ` ⚠️ Text may exceed canvas`;
+    } else {
+        counter.style.color = '#6b7280';  // Normal gray color
+    }
+}
+
 function addTextToCanvas() {
     const text = DOM.textInput.value.trim();
-    if (text) {
-        ctx.font = `${state.currentFontSize}px Arial, sans-serif`;
-        ctx.fillStyle = state.currentColor;
-        ctx.textBaseline = 'top';
-        
-        // Split text by newlines to support multi-line
-        const lines = text.split('\n');
-        lines.forEach((line, index) => {
-            ctx.fillText(line, state.textClickX, state.textClickY + (index * state.currentFontSize * 1.2));
-        });
-        
-        // Save canvas state after adding text
-        saveCanvasState();
+    if (!text) {
+        closeTextModal();
+        return;
     }
+    
+    // Use Cabin font to match site design
+    ctx.font = `${state.currentFontSize}px Cabin, Arial, sans-serif`;
+    ctx.fillStyle = state.currentColor;
+    ctx.textBaseline = 'top';
+    
+    // Calculate boundaries
+    const maxWidth = DOM.canvas.width - (CONSTANTS.TEXT.PADDING * 2);
+    const lineHeight = state.currentFontSize * CONSTANTS.TEXT.LINE_HEIGHT_FACTOR;
+    
+    // PRE-CALCULATE how much space we need for the text
+    const words = text.split(' ');
+    let estimatedLines = 1;
+    let testLine = '';
+    
+    // Estimate number of lines needed by simulating wrapping
+    for (let i = 0; i < words.length; i++) {
+        const testPhrase = testLine + words[i] + ' ';
+        const metrics = ctx.measureText(testPhrase);
+        
+        if (metrics.width > maxWidth && i > 0) {
+            estimatedLines++;
+            testLine = words[i] + ' ';
+        } else {
+            testLine = testPhrase;
+        }
+    }
+    
+    const estimatedHeight = estimatedLines * lineHeight;
+    
+    // FORCE X position to left padding (ensures full width available for text)
+    let x = CONSTANTS.TEXT.PADDING;
+    
+    // SMART Y adjustment - ensure all text fits on canvas
+    const minY = state.currentFontSize; // Top boundary
+    const maxY = DOM.canvas.height - estimatedHeight - CONSTANTS.TEXT.PADDING;
+    
+    // Clamp Y to valid range - if user clicks near bottom, move text up
+    let y = Math.max(minY, Math.min(state.textClickY, maxY));
+    
+    // Word wrapping algorithm - render the text
+    let line = '';
+    let currentY = y;
+    
+    for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+        
+        // If line exceeds max width, draw current line and start new one
+        if (testWidth > maxWidth && i > 0) {
+            ctx.fillText(line.trim(), x, currentY);
+            line = words[i] + ' ';
+            currentY += lineHeight;
+            
+            // Safety check (should never happen with our pre-calculation)
+            if (currentY + lineHeight > DOM.canvas.height - CONSTANTS.TEXT.PADDING) {
+                console.warn('Text exceeded canvas height - remaining text was not rendered');
+                break;
+            }
+        } else {
+            line = testLine;
+        }
+    }
+    
+    // Draw the final line if within bounds
+    if (line.trim() !== '' && currentY <= DOM.canvas.height - CONSTANTS.TEXT.PADDING) {
+        ctx.fillText(line.trim(), x, currentY);
+    }
+    
+    // Save state and close modal
+    saveCanvasState();
     closeTextModal();
 }
 
